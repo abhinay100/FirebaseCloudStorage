@@ -3,6 +3,8 @@ package com.androiddevs.firebasestorage
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -38,6 +40,25 @@ class MainActivity : AppCompatActivity() {
             uploadImageToStorage("myImage")
         }
 
+        btnDownloadImage.setOnClickListener {
+            downloadImage("myImage")
+        }
+
+    }
+
+    private fun downloadImage(filename: String) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val maxDownloadSize = 5L * 1024 * 1024
+            val bytes = imageRef.child("images/$filename").getBytes(maxDownloadSize).await()
+            val bmp = BitmapFactory.decodeByteArray(bytes, 0 , bytes.size)
+            withContext(Dispatchers.Main) {
+                ivImage.setImageBitmap(bmp)
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun uploadImageToStorage(filename: String) = CoroutineScope(Dispatchers.IO).launch {
